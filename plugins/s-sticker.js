@@ -1,4 +1,4 @@
-const { sticker } = require('../lib/sticker')
+const { sticker, sticker5 } = require('../lib/sticker')
 
 let handler = async (m, { conn }) => {
     let stiker = false
@@ -7,32 +7,38 @@ let handler = async (m, { conn }) => {
         let mime = (q.msg || q).mimetype || ''
         if (/webp/.test(mime)) {
             let img = await q.download()
+            if (!img) throw `reply sticker with command s`
             stiker = await sticker(img, false, packname, author)
         } else if (/image/.test(mime)) {
             let img = await q.download()
+            if (!img) throw `reply image with command s`
             stiker = await sticker(img, false, packname, author)
         } else if (/video/.test(mime)) {
-            if ((q.msg || q).seconds > 11) return m.reply('maks 10 detik!')
+            if ((q.msg || q).seconds > 11) return m.reply('max is 10 seconds!')
             let img = await q.download()
+            if (!img) throw `reply video with command s`
             stiker = await sticker(img, false, packname, author)
         } else if (m.quoted.text) {
-            if (isUrl(m.quoted.text)) stiker = await sticker(false, text, packname, author)
-            else throw 'URL tidak valid! akhiri dengan jpg/gif/png'
+            if (isUrl(m.quoted.text)) stiker = await sticker(false, m.quoted.text, packname, author)
+            else throw 'URL is not valid! end with jpg/gif/png'
         }
     } catch (e) {
         throw e
     }
     finally {
-        if (stiker) await conn.sendFile(m.chat, stiker, '', '', m)
+        if (stiker) {
+          m.reply(stiker_wait)
+            await conn.sendFile(m.chat, stiker, 'stiker.webp', '', m)
+        }
         else {
-            await conn.sendButton(m.chat, `balas medianya!`, wm, 'aktifkan stiker otomatis', '.1 s', m)
+
             throw 0
         }
     }
 }
-handler.help = ['stiker ', 'stiker <url>']
+handler.help = ['sticker']
 handler.tags = ['sticker']
-handler.command = /^s(tic?ker)?(gif)?(wm)?$/i
+handler.command = /^(stiker|s|sticker)$/i
 
 module.exports = handler
 
